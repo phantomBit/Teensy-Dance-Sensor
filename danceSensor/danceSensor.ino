@@ -4,6 +4,8 @@
 
 //Set to 1 to enable debugging Via Serial
 const bool DEBUG = false;
+const bool LED_FADE = true;
+const int LED_MAX_PWM = 190;
 
 //This is the LED pin for a Teensy 3.2
 const int LedPin = 13;
@@ -63,7 +65,7 @@ public:
         pinMode(sensorPin, INPUT_PULLUP);
 
         if (lightPin != 0) {
-
+          pinMode(lightPin, OUTPUT);
         }
     }
 
@@ -81,8 +83,27 @@ public:
             triggered = false;
             Joystick.button(joystickButton, 0);
         }
-
+        ledSet();
         return triggered;
+    }
+
+    void ledSet(){
+      if (lightPin != 0) {
+        if(LED_FADE){
+          float per = 1 - ((float)lastAnalogRead / 900);
+          if(0 > round(per*100)){
+            per = 0;
+          }
+          int val = round(LED_MAX_PWM * per);
+          analogWrite(lightPin, val);
+        } else {
+          if(triggered){
+            analogWrite(lightPin, LED_MAX_PWM);
+          } else {
+            analogWrite(lightPin, 0);
+          }
+        }
+      }
     }
 };
 
@@ -90,7 +111,7 @@ public:
  * Usage:
  *   ArrowButton <variableName>(<sensorPin>, <joystickButton>, <threshold>, <lightPin>);
  */
-ArrowButton padLeft(14, 1, 150);
+ArrowButton padLeft(14, 1, 150, 23);
 ArrowButton padDown(15, 2, 150);
 ArrowButton padUp(16, 3, 150);
 ArrowButton padRight(17, 4, 150);
